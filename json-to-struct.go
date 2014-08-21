@@ -57,6 +57,8 @@ import (
 var (
 	name = flag.String("name", "Foo", "the name of the struct")
 	pkg  = flag.String("pkg", "main", "the name of the package for the generated code")
+	bson = flag.Bool("bson", true, "whether to include bson tags also")
+	omitempty = flag.Bool("omitempty", true, "whether to include omitempty")
 )
 
 // Given a JSON string representation of an object and a name structName,
@@ -115,10 +117,20 @@ func generateTypes(obj map[string]interface{}, depth int) string {
 		}
 
 		fieldName := fmtFieldName(key)
-		structure += fmt.Sprintf("\n%s %s `json:\"%s\"`",
+
+		var bsonTag, omitemptyDecl string
+		if *omitempty {
+			omitemptyDecl = ",omitempty"
+		}
+		if *bson {
+			bsonTag = fmt.Sprintf(" bson:\"%s%s\"", key, omitemptyDecl)
+		}
+		structure += fmt.Sprintf("\n%s %s `json:\"%s%s\"%s`",
 			fieldName,
 			valueType,
-			key)
+			key,
+			omitemptyDecl,
+			bsonTag)
 	}
 	return structure
 }
