@@ -62,6 +62,8 @@ var (
 	pkg        = flag.String("pkg", "main", "the name of the package for the generated code")
 	inputName  = flag.String("input", "", "the name of the input file containing JSON (if input not provided via STDIN)")
 	outputName = flag.String("o", "", "the name of the input file containing JSON (if input not provided via STDIN)")
+	bson       = flag.Bool("bson", true, "whether to include bson tags also")
+	omitempty  = flag.Bool("omitempty", true, "whether to include omitempty")
 )
 
 // commonInitialisms is a set of common initialisms.
@@ -157,10 +159,20 @@ func generateTypes(obj map[string]interface{}, depth int) string {
 		}
 
 		fieldName := fmtFieldName(key)
-		structure += fmt.Sprintf("\n%s %s `json:\"%s\"`",
+
+		var bsonTag, omitemptyDecl string
+		if *omitempty {
+			omitemptyDecl = ",omitempty"
+		}
+		if *bson {
+			bsonTag = fmt.Sprintf(" bson:\"%s%s\"", key, omitemptyDecl)
+		}
+		structure += fmt.Sprintf("\n%s %s `json:\"%s%s\"%s`",
 			fieldName,
 			valueType,
-			key)
+			key,
+			omitemptyDecl,
+			bsonTag)
 	}
 	return structure
 }
